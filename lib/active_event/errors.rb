@@ -13,10 +13,10 @@ module ActiveEvent
     end
   end
 
-  class InvalidEventBus < Error
+  class InvalidBroadcaster < Error
     def initialize(value)
-      message = "Invalid event_bus. Valid buses are `:default` or `:test`, " \
-        "got `#{value.inspect}`"
+      message = "Invalid broadcaster. Valid broadcasters are " \
+        "`:default`, or `:test`, got `#{value.inspect}`"
 
       super(message)
     end

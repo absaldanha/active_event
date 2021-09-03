@@ -10,43 +10,6 @@ require "support/handlers/post_handler"
 
 module ActiveEvent
   class SubscriberSetTest < Minitest::Test
-    def test_notify_notifies_only_correct_subscribers
-      event = ArticleUpdatedEvent.new
-
-      log_subscriber = Subscribers.build(
-        handler: LogHandler,
-        events: [ArticleUpdatedEvent]
-      )
-      article_subscriber = Subscribers.build(
-        handler: ArticleHandler,
-        events: [ArticleUpdatedEvent]
-      )
-      post_subscriber = Subscribers.build(
-        handler: PostHandler,
-        events: []
-      )
-
-      subscriber_set = SubscriberSet.new(
-        [log_subscriber, post_subscriber, article_subscriber]
-      )
-
-      output, = capture_io do
-        subscriber_set.notify(event)
-      end
-
-      assert_match "LogHandler: Received event!", output
-      assert_match "ArticleHandler: Received event!", output
-    end
-
-    def test_notify_with_no_subscriber
-      subscriber_set = SubscriberSet.new
-      event = ArticleUpdatedEvent.new
-
-      assert_silent do
-        subscriber_set.notify(event)
-      end
-    end
-
     def test_add
       subscriber_set = SubscriberSet.new
 

@@ -5,7 +5,7 @@ module ActiveEvent
     attr_reader :payload
 
     def initialize(payload = {})
-      @payload = payload
+      @payload = payload.transform_keys(&:to_sym)
     end
 
     def name

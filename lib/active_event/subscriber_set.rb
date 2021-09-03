@@ -2,7 +2,7 @@
 
 module ActiveEvent
   class SubscriberSet
-    delegate :find, :select, :clear, :to_a, to: :@subscribers
+    delegate :find, :select, :clear, :to_a, :each, to: :@subscribers
 
     def initialize(subscribers = [])
       @subscribers = []
@@ -21,18 +21,6 @@ module ActiveEvent
       else
         @subscribers << new_sub
       end
-    end
-
-    def notify(event)
-      subscribers_of(event).each do |subscriber|
-        subscriber.notify(event)
-      end
-    end
-
-    private
-
-    def subscribers_of(event)
-      select { |subscriber| subscriber.subscribed_to?(event) }
     end
   end
 end

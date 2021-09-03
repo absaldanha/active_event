@@ -3,6 +3,7 @@
 require "zeitwerk"
 require "dry-configurable"
 require "active_support/core_ext/module/delegation"
+require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/string"
 require "active_job"
 require "active_event/errors"
@@ -14,20 +15,22 @@ loader.setup
 module ActiveEvent
   extend Dry::Configurable
 
-  setting(:event_bus, :default) do |value|
+  mattr_reader :event_bus, instance_accessor: false, default: EventBus.new
+
+  setting(:broadcaster, :default) do |value|
     case value
     when String, Symbol
-      EventBuses.lookup(value.to_s).new
+      Broadcasters.lookup(value).new
     else
-      raise InvalidEventBus, value
+      raise InvalidBroadcaster, value
     end
   end
 
   def self.subscribe(*handlers, on: [], async: false)
-    config.event_bus.subscribe(*handlers, on: on, async: async)
+    event_bus.subscribe(*handlers, on: on, async: async)
   end
 
   def self.dispatch(event)
-    config.event_bus.dispatch(event)
+    event_bus.dispatch(event)
   end
 end
