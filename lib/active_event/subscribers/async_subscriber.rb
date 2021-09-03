@@ -12,10 +12,6 @@ module ActiveEvent
           handler.class.name
         )
       end
-
-      def async
-        true
-      end
     end
   end
 end

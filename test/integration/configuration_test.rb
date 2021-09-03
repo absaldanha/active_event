@@ -4,32 +4,32 @@ require "test_helper"
 
 module ActiveEvent
   class ConfigurationTest < Minitest::Test
-    def test_config_with_default_event_bus
+    def test_config_with_default_broadcaster
       ActiveEvent.configure do |config|
-        config.event_bus = :default
+        config.broadcaster = :default
       end
 
       assert_instance_of(
-        EventBuses::DefaultEventBus,
-        ActiveEvent.config.event_bus
+        Broadcasters::DefaultBroadcaster,
+        ActiveEvent.config.broadcaster
       )
     end
 
-    def test_config_when_test_event_bus
+    def test_config_when_test_broadcaster
       ActiveEvent.configure do |config|
-        config.event_bus = :test
+        config.broadcaster = :test
       end
 
       assert_instance_of(
-        EventBuses::TestEventBus,
-        ActiveEvent.config.event_bus
+        Broadcasters::TestBroadcaster,
+        ActiveEvent.config.broadcaster
       )
     end
 
-    def test_config_when_invalid_event_bus
-      assert_raises InvalidEventBus do
+    def test_config_when_invalid_broadcaster
+      assert_raises InvalidBroadcaster do
         ActiveEvent.configure do |config|
-          config.event_bus = Object.new
+          config.broadcaster = Object.new
         end
       end
     end

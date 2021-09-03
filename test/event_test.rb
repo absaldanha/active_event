@@ -1,13 +1,19 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "minitest/mock"
+require "support/helpers/broadcaster_helper"
+require "support/handlers/article_handler"
 require "support/events/article_updated_event"
-require "support/helpers/event_bus_helper"
 
 module ActiveEvent
   class EventTest < Minitest::Test
-    include EventBusHelper
+    include BroadcasterHelper
+
+    def test_initialize_symbolize_payload_keys
+      event = ArticleUpdatedEvent.new("foo" => 1, "bar" => 2)
+
+      assert_equal({ foo: 1, bar: 2 }, event.payload)
+    end
 
     def test_name_uses_underscore_class_name_without_event_by_default
       event = ArticleUpdatedEvent.new
@@ -18,10 +24,10 @@ module ActiveEvent
     def test_dispatch_dispatches_self
       event = ArticleUpdatedEvent.new
 
-      with_test_event_bus do
+      with_test_broadcaster do
         event.dispatch
 
-        assert_equal([event], ActiveEvent.config.event_bus.events)
+        assert_equal([event], ActiveEvent.config.broadcaster.sent_events)
       end
     end
 

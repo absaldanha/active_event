@@ -2,6 +2,7 @@
 
 require "test_helper"
 require "active_support/testing/assertions"
+require "support/handlers/post_handler"
 require "support/events/post_created_event"
 require "support/events/post_updated_event"
 require "support/events/article_created_event"
@@ -345,6 +346,44 @@ module ActiveEvent
       assert_nothing_raised do
         assert_sent_event_with payload: { first_arg: 1, second_arg: 2 } do
           event.dispatch
+        end
+      end
+    end
+
+    def test_with_inline_events_send_events_to_real_handlers
+      ActiveEvent.subscribe(PostHandler, on: PostCreatedEvent)
+
+      event = PostCreatedEvent.new
+
+      assert_nothing_raised do
+        with_inline_events do
+          out, = capture_io do
+            event.dispatch
+          end
+
+          assert_match(
+            "PostHandler: Received event! post_created: {}\n",
+            out
+          )
+        end
+      end
+    end
+
+    def test_with_inline_events_send_async_events_to_real_handlers
+      ActiveEvent.subscribe(PostHandler, on: PostCreatedEvent, async: true)
+
+      event = PostCreatedEvent.new
+
+      assert_nothing_raised do
+        with_inline_events do
+          out, = capture_io do
+            event.dispatch
+          end
+
+          assert_match(
+            "PostHandler: Received event! post_created: {}\n",
+            out
+          )
         end
       end
     end

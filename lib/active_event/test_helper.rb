@@ -6,9 +6,15 @@ module ActiveEvent
   module TestHelper
     include ActiveSupport::Testing::Assertions
 
+    delegate :clear_sent_events, :sent_events, to: :broadcaster
+
     def before_setup
-      ActiveEvent.config.event_bus = :test
-      ActiveEvent.config.event_bus.clear!
+      @old_broadcaster_name = ActiveEvent.config.broadcaster.name
+      @old_queue_adapter_name = ActiveEvent::AsyncEventJob.queue_adapter_name
+
+      ActiveEvent.config.broadcaster = :test
+      ActiveEvent::AsyncEventJob.queue_adapter = :test
+      clear_sent_events
 
       super
     end
@@ -16,8 +22,23 @@ module ActiveEvent
     def after_teardown
       super
 
-      ActiveEvent.config.event_bus.clear!
-      ActiveEvent.config.event_bus = :default
+      clear_sent_events
+
+      ActiveEvent.config.broadcaster = @old_broadcaster_name
+      ActiveEvent::AsyncEventJob.queue_adapter = @old_queue_adapter_name
+    end
+
+    def with_inline_events
+      broadcaster_name = ActiveEvent.config.broadcaster.name
+      queue_adapter_name = ActiveEvent::AsyncEventJob.queue_adapter_name
+
+      ActiveEvent.config.broadcaster = :default
+      ActiveEvent::AsyncEventJob.queue_adapter = :inline
+
+      yield
+    ensure
+      ActiveEvent.config.broadcaster = broadcaster_name
+      ActiveEvent::AsyncEventJob.queue_adapter = queue_adapter_name
     end
 
     def assert_sent_events(number, only: nil, except: nil, &block)
@@ -44,11 +65,11 @@ module ActiveEvent
       assert_sent_events 0, only: only, except: except, &block
     end
 
-    def received_events
-      ActiveEvent.config.event_bus.events
-    end
-
     private
+
+    def broadcaster
+      ActiveEvent.config.broadcaster
+    end
 
     def find_events_with(only: nil, except: nil)
       if only && except
@@ -57,12 +78,12 @@ module ActiveEvent
 
       if only
         array = Array(only)
-        received_events.select { |event| array.include?(event.class) }
+        sent_events.select { |event| array.include?(event.class) }
       elsif except
         array = Array(except)
-        received_events.reject { |event| array.include?(event.class) }
+        sent_events.reject { |event| array.include?(event.class) }
       else
-        received_events.dup
+        sent_events.dup
       end
     end
 

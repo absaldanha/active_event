@@ -32,15 +32,6 @@ module ActiveEvent
           args: [{ some: "payload" }, "PostCreatedEvent", "PostHandler"]
         )
       end
-
-      def test_async
-        subscriber = Subscribers::AsyncSubscriber.new(
-          PostHandler.new,
-          [PostCreatedEvent]
-        )
-
-        assert subscriber.async
-      end
     end
   end
 end

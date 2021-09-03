@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "support/helpers/broadcaster_helper"
 require "support/handlers/article_handler"
 require "support/handlers/log_handler"
 require "support/events/article_created_event"
@@ -8,9 +9,11 @@ require "support/events/article_updated_event"
 
 module ActiveEvent
   module EventBuses
-    class DefaultEventBusTest < Minitest::Test
+    class EventBusTest < Minitest::Test
+      include BroadcasterHelper
+
       def test_subscribe
-        event_bus = DefaultEventBus.new
+        event_bus = EventBus.new
 
         event_bus.subscribe ArticleHandler, on: ArticleCreatedEvent
 
@@ -24,7 +27,7 @@ module ActiveEvent
       end
 
       def test_subscribe_with_async
-        event_bus = DefaultEventBus.new
+        event_bus = EventBus.new
 
         event_bus.subscribe ArticleHandler, on: ArticleCreatedEvent, async: true
 
@@ -38,7 +41,7 @@ module ActiveEvent
       end
 
       def test_subscribe_with_multiple_handlers
-        event_bus = DefaultEventBus.new
+        event_bus = EventBus.new
 
         event_bus.subscribe(
           ArticleHandler, LogHandler,
@@ -57,7 +60,7 @@ module ActiveEvent
       end
 
       def test_subscribe_with_multiple_events
-        event_bus = DefaultEventBus.new
+        event_bus = EventBus.new
 
         event_bus.subscribe(
           ArticleHandler,
@@ -77,7 +80,7 @@ module ActiveEvent
       end
 
       def test_subscribe_with_multiple_handlers_and_multiple_events
-        event_bus = DefaultEventBus.new
+        event_bus = EventBus.new
 
         event_bus.subscribe(
           ArticleHandler, LogHandler,
@@ -99,7 +102,7 @@ module ActiveEvent
       end
 
       def test_subscribe_with_multiple_async_handlers
-        event_bus = DefaultEventBus.new
+        event_bus = EventBus.new
 
         event_bus.subscribe(
           ArticleHandler, LogHandler,
@@ -119,7 +122,7 @@ module ActiveEvent
       end
 
       def test_subscribe_with_multiple_events_and_async
-        event_bus = DefaultEventBus.new
+        event_bus = EventBus.new
 
         event_bus.subscribe(
           ArticleHandler,
@@ -140,7 +143,7 @@ module ActiveEvent
       end
 
       def test_subscribe_with_multiple_async_handlers_and_multiple_events
-        event_bus = DefaultEventBus.new
+        event_bus = EventBus.new
 
         event_bus.subscribe(
           ArticleHandler, LogHandler,
@@ -163,7 +166,7 @@ module ActiveEvent
       end
 
       def test_subscribe_with_already_subscribed_handler
-        event_bus = DefaultEventBus.new
+        event_bus = EventBus.new
 
         event_bus.subscribe(ArticleHandler, on: ArticleUpdatedEvent)
         event_bus.subscribe(ArticleHandler, on: ArticleCreatedEvent)
@@ -174,7 +177,7 @@ module ActiveEvent
       end
 
       def test_subscribe_with_inline_and_async_handler
-        event_bus = DefaultEventBus.new
+        event_bus = EventBus.new
 
         event_bus.subscribe(ArticleHandler, on: ArticleUpdatedEvent)
         event_bus.subscribe(
@@ -189,45 +192,45 @@ module ActiveEvent
       end
 
       def test_dispatch
-        event_bus = DefaultEventBus.new
+        event_bus = EventBus.new
 
         event_bus.subscribe ArticleHandler, on: ArticleCreatedEvent
         event = ArticleCreatedEvent.new
 
-        output, = capture_io do
-          event_bus.dispatch(event)
-        end
+        with_default_broadcaster do
+          output, = capture_io do
+            event_bus.dispatch(event)
+          end
 
-        assert_match "ArticleHandler: Received event!", output
+          assert_match "ArticleHandler: Received event!", output
+        end
       end
 
       def test_dispatch_with_multiple_subscribers
-        event_bus = DefaultEventBus.new
+        event_bus = EventBus.new
 
         event_bus.subscribe ArticleHandler, LogHandler, on: ArticleCreatedEvent
         event = ArticleCreatedEvent.new
 
-        output, = capture_io do
-          event_bus.dispatch(event)
-        end
+        with_default_broadcaster do
+          output, = capture_io do
+            event_bus.dispatch(event)
+          end
 
-        assert_match "ArticleHandler: Received event!", output
-        assert_match "LogHandler: Received event!", output
+          assert_match "ArticleHandler: Received event!", output
+          assert_match "LogHandler: Received event!", output
+        end
       end
 
       def test_dispatch_with_no_subscribers
-        event_bus = DefaultEventBus.new
+        event_bus = EventBus.new
         event = ArticleCreatedEvent.new
 
-        assert_silent do
-          event_bus.dispatch(event)
+        with_default_broadcaster do
+          assert_silent do
+            event_bus.dispatch(event)
+          end
         end
-      end
-
-      def test_name
-        event_bus = DefaultEventBus.new
-
-        assert_equal :default, event_bus.name
       end
     end
   end

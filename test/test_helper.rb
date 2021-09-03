@@ -17,7 +17,7 @@ ActiveJob::Base.logger = Logger.new(IO::NULL)
 module Minitest
   class Test
     def setup
-      ActiveEvent.config.event_bus.clear!
+      ActiveEvent.event_bus.clear!
     end
   end
 end

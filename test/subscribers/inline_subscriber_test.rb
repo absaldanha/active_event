@@ -29,15 +29,6 @@ module ActiveEvent
           subscriber.notify(event)
         end
       end
-
-      def test_async
-        subscriber = Subscribers::InlineSubscriber.new(
-          PostHandler.new,
-          [PostUpdatedEvent]
-        )
-
-        refute subscriber.async
-      end
     end
   end
 end
